@@ -1,0 +1,59 @@
+apiVersion: asdb.aerospike.com/v1
+kind: AerospikeCluster
+metadata:
+  name: asdev1
+  namespace: aerospike
+  annotations:
+    prometheus.io/port: "metrics"
+    prometheus.io/scrape: "true"  
+  labels:
+    release: kube-prometheus-stack
+
+spec:
+  size: 1
+  image: aerospike/aerospike-server-enterprise:7.0.0.0
+  podSpec:
+    multiPodPerHost: true
+    sidecars:
+     - name: aerospike-prometheus-exporter
+       image: aerospike/aerospike-prometheus-exporter:1.17.0
+       ports:
+         - containerPort: 9145
+           name: exporter
+
+  validationPolicy:
+    skipWorkDirValidate: true
+    skipXdrDlogFileValidate: true
+
+  storage:
+    volumes:
+      - name: aerospike-config-secret
+        source:
+          secret:
+            secretName: aerospike-secret
+        aerospike:
+          path: /etc/aerospike/secret
+
+  aerospikeConfig:
+    service:
+      feature-key-file: /etc/aerospike/secret/features.conf
+    network:
+      service:
+        port: 3000
+      fabric:
+        port: 3001
+      heartbeat:
+        port: 3002
+    namespaces:
+      - name: test
+        replication-factor: 2
+        storage-engine:
+          type: memory
+          data-size: 1073741824  
+      - name: bar
+        replication-factor: 2
+        storage-engine:
+          type: memory
+          data-size: 1073741824   
+      
+
