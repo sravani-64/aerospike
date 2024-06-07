@@ -15,7 +15,7 @@ spec:
         app: example-app
     spec:
       containers:
-      - name: nginx-container
+      - name: test-container
         image: nithin246/hackathon-nodejs
         ports:
         - containerPort: 8080
